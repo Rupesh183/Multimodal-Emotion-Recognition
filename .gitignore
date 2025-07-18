@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches and environments
+venv/
+env/
+.env
+.venv/
+.pytest_cache/
+
+# Data and preprocessed artifacts
+data/
+Preprocessed/
+*.pkl
+*.pt
+*.pth
+saved_models/
+pictures/
+
+# IDE and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# HuggingFace & Logs
+runs/
+wandb/
+.cache/
