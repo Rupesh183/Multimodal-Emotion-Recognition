@@ -4,6 +4,7 @@ import librosa
 import numpy as np
 from scipy import signal
 from scipy.io import wavfile
+from transformers import Wav2Vec2Processor
 
 
 class AudioExtractor:
@@ -78,3 +79,29 @@ class Spectrogram3DExtractor(AudioExtractor):
         spector = cls._get_3d_spec(spector)
         npimg = np.transpose(spector, (2, 0, 1))
         return torch.tensor(npimg)
+
+
+class Wav2Vec2Extractor(AudioExtractor):
+    _processor = None
+
+    @classmethod
+    def get_processor(cls):
+        if cls._processor is None:
+            cls._processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
+        return cls._processor
+
+    @classmethod
+    def extract(cls, audio_path: str):
+        import torchaudio
+
+        processor = cls.get_processor()
+        raw_audio, sample_rate = torchaudio.load(audio_path)
+        if sample_rate != 16000:
+            resampler = torchaudio.transforms.Resample(sample_rate, 16000)
+            raw_audio = resampler(raw_audio)
+            sample_rate = 16000
+
+        input_features = processor(
+            raw_audio.squeeze(), return_tensors="pt", sampling_rate=sample_rate
+        ).input_values
+        return input_features.flatten()
