@@ -136,3 +136,39 @@ class TimNet(nn.Module):
                 continue
             x = torch.cat([x, item], dim=-2)
         return x.squeeze()
+
+
+class TimNetClassifier(nn.Module):
+    def __init__(
+        self,
+        in_filters: int,
+        num_classes: int,
+        filters_size: List[int] = None,
+        kernel_size: int = 2,
+        stack_size: int = 1,
+        dilation_size: int = 4,
+        dropout_rate: float = 0.1,
+    ):
+        super(TimNetClassifier, self).__init__()
+        if filters_size is None:
+            filters_size = [64, 64, 64, 64, 64]
+
+        self.multi_decision_layer = TimNet(
+            in_filters,
+            filters_size,
+            kernel_size,
+            stack_size,
+            dilation_size,
+            dropout_rate,
+        )
+
+        # Dynamic dimension computation to prevent matrix multiplication shape mismatches
+        feat_dim = sum(filters_size[i + 1] for i in range(dilation_size)) * stack_size
+        self.classifier = nn.Linear(feat_dim, num_classes, bias=True)
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, x: torch.Tensor):
+        x = self.multi_decision_layer(x)
+        x = self.classifier(x)
+        x = self.softmax(x)
+        return x
