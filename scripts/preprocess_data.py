@@ -62,3 +62,29 @@ def process_audio_data_to_pickle(
     dataframe.to_pickle(out_path)
     print(f"Saved audio features to {out_path}")
     return dataframe
+
+
+def process_text_data_to_pickle(
+    in_filename: str = "w2v2_and_text.pkl",
+    out_filename: str = "w2v2_and_tokens.pkl",
+    tokenizer=None,
+):
+    preprocessed_dir = CONFIG.dataset_preprocessed_dir_path()
+    dataframe = pd.read_pickle(os.path.join(preprocessed_dir, in_filename))
+
+    max_text_length = dataframe["text"].apply(len).max()
+    dataframe["text"] = dataframe["text"].apply(
+        lambda text: np.array(
+            tokenizer.encode(
+                text,
+                add_special_tokens=True,
+                truncation=True,
+                padding="max_length",
+                max_length=max_text_length,
+            )
+        )
+    )
+    out_path = os.path.join(preprocessed_dir, out_filename)
+    dataframe.to_pickle(out_path)
+    print(f"Saved tokenized dataset to {out_path}")
+    return dataframe
