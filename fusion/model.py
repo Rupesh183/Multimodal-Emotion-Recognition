@@ -7,6 +7,11 @@ from text.deberta import DebertaV3
 
 
 class FusionModel(nn.Module):
+    """
+    Multimodal Speech Emotion Recognition Fusion Model.
+    Fuses dense acoustic features (Wav2Vec2) and linguistic features (DeBERTa-V3)
+    along with unimodal predictions through a deep Multi-Layer Perceptron.
+    """
     def __init__(
         self,
         num_classes: int,
@@ -30,14 +35,13 @@ class FusionModel(nn.Module):
         self.audio_model = wav2vec2_model
 
         input_dim = 170 * 768 + 768 + num_classes * 2
-        self.mlp_head = nn.Sequential(
-            nn.Linear(input_dim, hidden_layers[0]),
-            nn.ReLU(),
-            nn.Linear(hidden_layers[0], hidden_layers[1]),
-            nn.ReLU(),
-            nn.Linear(hidden_layers[1], hidden_layers[2]),
-            nn.ReLU(),
-        )
+
+        layers = [nn.Linear(input_dim, hidden_layers[0]), nn.ReLU()]
+        for i in range(len(hidden_layers) - 1):
+            layers.append(nn.Linear(hidden_layers[i], hidden_layers[i + 1]))
+            layers.append(nn.ReLU())
+        self.mlp_head = nn.Sequential(*layers)
+
         self.cls_head = nn.Linear(hidden_layers[-1], num_classes)
         self.softmax = nn.Softmax(dim=1)
 
@@ -59,6 +63,8 @@ class FusionModel(nn.Module):
             [audio_features, audio_classification, text_features, text_classification],
             dim=1,
         )
+
         x = self.mlp_head(fused)
         x = self.cls_head(x)
-        return self.softmax(x)
+        x = self.softmax(x)
+        return x
