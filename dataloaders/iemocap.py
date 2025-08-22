@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class IemocapDataset(Dataset):
+    """
+    PyTorch Dataset wrapper for processed IEMOCAP speech audio and transcription data.
+    """
     def __init__(
         self,
         dataset_path: str,
@@ -28,7 +31,9 @@ class IemocapDataset(Dataset):
         elif split == "test":
             self._dataframe = self._dataframe.iloc[rows_80_percent:, :]
         else:
-            raise ValueError(f"Invalid dataset split: {split}")
+            raise ValueError(f"Invalid dataset split: {split}. Choose 'train' or 'test'.")
+
+        logger.info(f"Loaded {split} dataset split. Size: {len(self)} samples.")
 
     def __getitem__(self, index: int):
         audio, text, emotion = self._dataframe.iloc[index]
