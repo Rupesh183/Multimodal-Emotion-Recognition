@@ -2,7 +2,13 @@ import os
 import torch
 import yaml
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# Device agnostic detection supporting CUDA, Apple MPS, and CPU fallback
+if torch.cuda.is_available():
+    device = "cuda"
+elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+    device = "mps"
+else:
+    device = "cpu"
 
 
 class CONFIG:
