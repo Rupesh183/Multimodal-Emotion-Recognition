@@ -9,6 +9,7 @@ dataset_specific:
 dataloader:
   batch_size: 32
   num_workers: 4
+  pin_memory: true
 models:
   pretrained_alexnet: "https://download.pytorch.org/models/alexnet-owt-4df8aa71.pth"
   save_location: "saved_models"
